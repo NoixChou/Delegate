@@ -57,17 +57,45 @@ namespace Test
         }
     };
 
+    class StandardListener : public events::ManagedEventListener
+    {
+    public:
+        StandardListener()
+        {
+            UseDelegate(g_TestHandle);
+        }
+
+        bool TestHandler(TestEvent& e)
+        {
+            Logger::WriteMessage(e.message_.c_str());
+            Logger::WriteMessage(("Called StandardListener::TestHandler(TestEvent& e): " + e.name).c_str());
+
+            return true;
+        }
+        bool TestHandler2(TestEvent & e)
+        {
+            Logger::WriteMessage(e.message_.c_str());
+            Logger::WriteMessage(("Called StandardListener::TestHandler2(TestEvent& e): " + e.name).c_str());
+            Logger::WriteMessage("Cancelled");
+            return false;
+        }
+        bool TestHandler3(TestEvent& e)
+        {
+            Logger::WriteMessage(e.message_.c_str());
+            Logger::WriteMessage(("Called StandardListener::TestHandler3(TestEvent& e): " + e.name).c_str());
+            return true;
+        }
+    };
+
 	TEST_CLASS(Test)
 	{
 	public:
-        SelfAddListener* l_SelfAdd = nullptr;
-        OthersAddListener* l_OthersAdd = nullptr;
 		TEST_METHOD(SelfAddTest)
 		{
-            l_SelfAdd = new SelfAddListener();
+            auto l_SelfAdd = new SelfAddListener();
 
-            TestEvent e("Event_SelfAddTest");
-            e.name = "TEST EVENT";
+            TestEvent e("Hello");
+            e.name = "Event_SelfAddTest";
             g_TestHandle(e);
 
             delete l_SelfAdd;
@@ -75,13 +103,13 @@ namespace Test
 
         TEST_METHOD(OthersAddTest)
         {
-            l_OthersAdd = new OthersAddListener();
+            auto l_OthersAdd = new OthersAddListener();
 
             g_TestHandle += events::EventHandler(l_OthersAdd, &OthersAddListener::TestHandler);
             g_TestHandle += events::EventHandler(l_OthersAdd, &OthersAddListener::TestHandler2);
 
-            TestEvent e("Event_OthersAddTest");
-            e.name = "TEST EVENT";
+            TestEvent e("Hello");
+            e.name = "Event_OthersAddTest";
             g_TestHandle(e);
 
             delete l_OthersAdd;
@@ -89,9 +117,43 @@ namespace Test
 
         TEST_METHOD(EmptyDelegateTest)
 		{
-            TestEvent e("Event_EmptyDelegateTest");
-            e.name = "TEST EVENT";
+            TestEvent e("Hello");
+            e.name = "Event_EmptyDelegateTest";
             g_TestHandle(e);
 		}
+
+        TEST_METHOD(EventCancellableTest)
+		{
+            auto l_Std = new StandardListener();
+
+            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler);
+            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler2);
+            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler3);
+
+            TestEvent e("Hello");
+            e.name = "Event_EventCancelTest_Cancellable";
+            e.isCancellable = true;
+
+            g_TestHandle(e);
+
+            delete l_Std;
+		}
+
+        TEST_METHOD(EventUnCancellableTest)
+        {
+            auto l_Std = new StandardListener();
+
+            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler);
+            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler2);
+            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler3);
+
+            TestEvent e_uncancel("Hello");
+            e_uncancel.name = "Event_EventCancelTest_UnCancellable";
+            e_uncancel.isCancellable = false;
+
+            g_TestHandle(e_uncancel);
+
+            delete l_Std;
+        }
 	};
 }

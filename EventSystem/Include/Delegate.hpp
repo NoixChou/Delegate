@@ -36,7 +36,7 @@ namespace events
         {
             for (EventHandler h : Handlers_)
             {
-                if (!h.Call(e)) break;
+                if (!h.Call(e) && e.isCancellable) break;
             }
         }
 
