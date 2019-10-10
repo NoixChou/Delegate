@@ -3,10 +3,13 @@
 
 #include <string>
 
-class Event
+namespace events
 {
-public:
-    std::string name;
-    bool isCancellable = true;
-};
+    class Event
+    {
+    public:
+        std::string name;
+        bool isCancellable = true;
+    };
+}
 #endif // EVENT_HPP

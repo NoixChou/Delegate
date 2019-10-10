@@ -3,7 +3,7 @@
 
 #include "../EventSystem//Include/Event.hpp"
 
-class TestEvent : public Event
+class TestEvent : public events::Event
 {
 public:
     std::string message_ = "";
