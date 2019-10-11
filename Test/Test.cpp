@@ -8,81 +8,117 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace Test
 {
-    events::Delegate g_TestHandle;
+    events::Delegate<bool, TestEvent*> g_TestHandle([](bool ret, TestEvent* e) { return !ret && e->isCancellable; });
 
     class SelfAddListener : public events::ManagedEventListener
     {
     public:
         SelfAddListener()
         {
-            g_TestHandle += events::EventHandler(this, &SelfAddListener::TestHandler);
-            g_TestHandle += events::EventHandler(this, &SelfAddListener::TestHandler2);
-            UseDelegate(g_TestHandle);
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(this, &SelfAddListener::TestHandler);
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(this, &SelfAddListener::TestHandler2);
         }
 
-        bool TestHandler(TestEvent& e)
+        ~SelfAddListener()
         {
-            Logger::WriteMessage(e.message_.c_str());
-            Logger::WriteMessage(("Called SelfAddListener::TestHandler(TestEvent& e): " + e.name).c_str());
+            g_TestHandle >> this;
+        }
+
+        bool TestHandler(TestEvent* e)
+        {
+            Logger::WriteMessage(e->message_.c_str());
+            Logger::WriteMessage(("Called SelfAddListener::TestHandler(TestEvent& e): " + e->name).c_str());
             return true;
         }
-        bool TestHandler2(TestEvent& e)
+        bool TestHandler2(TestEvent* e)
         {
-            Logger::WriteMessage(e.message_.c_str());
-            Logger::WriteMessage(("Called SelfAddListener::TestHandler(TestEvent& e): " + e.name).c_str());
+            Logger::WriteMessage(e->message_.c_str());
+            Logger::WriteMessage(("Called SelfAddListener::TestHandler(TestEvent& e): " + e->name).c_str());
             return true;
         }
     };
 
     class OthersAddListener : public events::ManagedEventListener
     {
+    private:
+        std::string TestString_ = "";
+
     public:
-        OthersAddListener()
+        OthersAddListener(const std::string& moduleName)
         {
-            UseDelegate(g_TestHandle);
+            TestString_ = moduleName;
+            //UseDelegate(g_TestHandle);
         }
 
-        bool TestHandler(TestEvent& e)
+        ~OthersAddListener()
         {
-            Logger::WriteMessage(e.message_.c_str());
-            Logger::WriteMessage(("Called OthersAddListener::TestHandler(TestEvent& e): " + e.name).c_str());
+        }
+
+        bool TestHandler(TestEvent* e)
+        {
+            Logger::WriteMessage(e->message_.c_str());
+            Logger::WriteMessage(("Called OthersAddListener::TestHandler(TestEvent& e): " + e->name).c_str());
+            Logger::WriteMessage(TestString_.c_str());
 
             return true;
         }
-        bool TestHandler2(TestEvent& e)
+        bool TestHandler2(TestEvent* e)
         {
-            Logger::WriteMessage(e.message_.c_str());
-            Logger::WriteMessage(("Called OthersAddListener::TestHandler2(TestEvent& e): " + e.name).c_str());
+            Logger::WriteMessage(e->message_.c_str());
+            Logger::WriteMessage(("Called OthersAddListener::TestHandler2(TestEvent& e): " + e->name).c_str());
+            Logger::WriteMessage(TestString_.c_str());
             return true;
         }
     };
 
     class StandardListener : public events::ManagedEventListener
     {
+    private:
+        std::shared_ptr<OthersAddListener> others = nullptr;
+
     public:
+
         StandardListener()
         {
-            UseDelegate(g_TestHandle);
+            others = std::make_shared<OthersAddListener>("StandardListener");
+            //UseDelegate(g_TestHandle);
         }
 
-        bool TestHandler(TestEvent& e)
+        ~StandardListener()
         {
-            Logger::WriteMessage(e.message_.c_str());
-            Logger::WriteMessage(("Called StandardListener::TestHandler(TestEvent& e): " + e.name).c_str());
+        }
+
+        bool TestHandler(TestEvent* e)
+        {
+            Logger::WriteMessage(e->message_.c_str());
+            Logger::WriteMessage(("Called StandardListener::TestHandler(TestEvent& e): " + e->name).c_str());
 
             return true;
         }
-        bool TestHandler2(TestEvent & e)
+        bool TestHandler2(TestEvent* e)
         {
-            Logger::WriteMessage(e.message_.c_str());
-            Logger::WriteMessage(("Called StandardListener::TestHandler2(TestEvent& e): " + e.name).c_str());
+            Logger::WriteMessage(e->message_.c_str());
+            Logger::WriteMessage(("Called StandardListener::TestHandler2(TestEvent& e): " + e->name).c_str());
             Logger::WriteMessage("Cancelled");
             return false;
         }
-        bool TestHandler3(TestEvent& e)
+        bool TestHandler3(TestEvent* e)
         {
-            Logger::WriteMessage(e.message_.c_str());
-            Logger::WriteMessage(("Called StandardListener::TestHandler3(TestEvent& e): " + e.name).c_str());
+            Logger::WriteMessage(e->message_.c_str());
+            Logger::WriteMessage(("Called StandardListener::TestHandler3(TestEvent& e): " + e->name).c_str());
+            return true;
+        }
+
+        bool CallOtherHandler(TestEvent* e)
+        {
+            Logger::WriteMessage(e->message_.c_str());
+            Logger::WriteMessage(("Called StandardListener::CallOtherHandler(TestEvent& e): " + e->name).c_str());
+
+            Logger::WriteMessage("  Call others...");
+
+            TestEvent evt_("Called from other class");
+            evt_.name = "TEST_EVENT";
+            others->TestHandler(&evt_);
             return true;
         }
     };
@@ -96,21 +132,23 @@ namespace Test
 
             TestEvent e("Hello");
             e.name = "Event_SelfAddTest";
-            g_TestHandle(e);
+            g_TestHandle(&e);
 
             delete l_SelfAdd;
 		}
 
         TEST_METHOD(OthersAddTest)
         {
-            auto l_OthersAdd = new OthersAddListener();
+            auto l_OthersAdd = new OthersAddListener("OthersAddTest");
 
-            g_TestHandle += events::EventHandler(l_OthersAdd, &OthersAddListener::TestHandler);
-            g_TestHandle += events::EventHandler(l_OthersAdd, &OthersAddListener::TestHandler2);
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(l_OthersAdd, &OthersAddListener::TestHandler);
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(l_OthersAdd, &OthersAddListener::TestHandler2);
 
             TestEvent e("Hello");
             e.name = "Event_OthersAddTest";
-            g_TestHandle(e);
+            g_TestHandle(&e);
+
+            g_TestHandle >> l_OthersAdd;
 
             delete l_OthersAdd;
         }
@@ -119,22 +157,24 @@ namespace Test
 		{
             TestEvent e("Hello");
             e.name = "Event_EmptyDelegateTest";
-            g_TestHandle(e);
+            g_TestHandle(&e);
 		}
 
         TEST_METHOD(EventCancellableTest)
 		{
             auto l_Std = new StandardListener();
 
-            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler);
-            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler2);
-            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler3);
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(l_Std, &StandardListener::TestHandler);
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(l_Std, &StandardListener::TestHandler2);
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(l_Std, &StandardListener::TestHandler3);
 
             TestEvent e("Hello");
             e.name = "Event_EventCancelTest_Cancellable";
             e.isCancellable = true;
 
-            g_TestHandle(e);
+            g_TestHandle(&e);
+
+            g_TestHandle >> l_Std;
 
             delete l_Std;
 		}
@@ -143,17 +183,34 @@ namespace Test
         {
             auto l_Std = new StandardListener();
 
-            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler);
-            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler2);
-            g_TestHandle += events::EventHandler(l_Std, &StandardListener::TestHandler3);
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(l_Std, &StandardListener::TestHandler);
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(l_Std, &StandardListener::TestHandler2);
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(l_Std, &StandardListener::TestHandler3);
 
             TestEvent e_uncancel("Hello");
             e_uncancel.name = "Event_EventCancelTest_UnCancellable";
             e_uncancel.isCancellable = false;
 
-            g_TestHandle(e_uncancel);
+            g_TestHandle(&e_uncancel);
+
+            g_TestHandle >> l_Std;
 
             delete l_Std;
+        }
+
+        TEST_METHOD(OtherMethodCallTest)
+		{
+            auto l_Std = std::make_shared<StandardListener>();
+
+            g_TestHandle += events::EventHandler<bool, TestEvent*>(l_Std.get(), &StandardListener::CallOtherHandler);
+
+            TestEvent e("Hello");
+            e.name = "Event_OtherMethodCallTest";
+            e.isCancellable = false;
+
+            g_TestHandle(&e);
+
+            g_TestHandle >> l_Std.get();
         }
 	};
 }

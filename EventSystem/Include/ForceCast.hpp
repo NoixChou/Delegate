@@ -16,6 +16,18 @@ namespace util
         original = p;
         return ptr;
     }
+
+    template<class T>
+    void* ForceVoid(T p)
+    {
+        union
+        {
+            T original;
+            void* ptr;
+        };
+        original = p;
+        return ptr;
+    }
 }
 
 #endif

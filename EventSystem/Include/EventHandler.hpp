@@ -2,6 +2,7 @@
 #define EVENT_HANDLER_HPP
 
 #include <sstream>
+#include <functional>
 #include "Event.hpp"
 #include "EventListener.hpp"
 
@@ -11,51 +12,59 @@
 
 namespace events
 {
-
+    template<typename Ret_, typename... Args_>
     class EventHandler
     {
     public:
-        using Handler = bool(EventListener::*)(Event&);
+        //using Handler = bool(EventListener::*)(Event&);
+        using HandlerSet = std::pair<void*, void*>;
+
+        struct HandlerData
+        {
+            std::function<Ret_(Args_...)> func_;
+            HandlerSet ptrs_;
+        };
 
     private:
-        EventListener* Class_ = nullptr;
-        Handler Function_ = nullptr;
+         HandlerData Handler_;
 
     public:
         EventHandler() = default;
 
-        template<typename T>
-        EventHandler(EventListener* c, T f)
+        template<typename T, typename U>
+        EventHandler(T c, U f)
         {
-            SetHandler(c, f);
+            SetHandler<T, U>(c, f);
         }
 
-        template<typename T>
-        void SetHandler(EventListener* c, T f)
+        template<typename T, typename U>
+        void SetHandler(T c, U f)
         {
-            Class_ = c;
-            Function_ = util::ForceCast<T, Handler>(f);
+            Handler_.func_ = [c, f](Args_... args) ->
+            Ret_ { return (c->*f)(args...); };
+            Handler_.ptrs_ = std::make_pair(util::ForceVoid(f), c);
         }
 
-        bool Call(Event& e) const
+        Ret_ Call(Args_... args) const
         {
-            return (Class_->*Function_)(e);
+            return Handler_.func_(args...);
+            //return (Class_->*Function_)(e);
         }
 
-        const EventListener* GetClass() const
+        const void* GetClass() const
         {
-            return Class_;
+            return Handler_.ptrs_.second;
         }
 
         bool operator==(const EventHandler& left) const
         {
-            return this->Function_ == left.Function_;
+            return this->Handler_.ptrs_ == left.Handler_.ptrs_;
         }
 
         operator std::string() const
         {
             std::stringstream str;
-            str << "EventHandler[0x" << Class_ << "@" << Function_ << "]";
+            str << "EventHandler[0x" << Handler_.ptrs_.second << "@" << Handler_.ptrs_.first << "]";
             return str.str();
         }
     };

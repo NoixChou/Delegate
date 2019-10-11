@@ -7,8 +7,8 @@ namespace events
 {
     class ManagedEventListener : public EventListener
     {
-    private:
-        std::vector<Delegate*> Handlers_;
+/*    private:
+        std::vector<void*> Handlers_;
 
     public:
         ManagedEventListener() {}
@@ -17,14 +17,16 @@ namespace events
         {
             for (auto d : Handlers_)
             {
+                
                 (*d) >> this;
             }
         }
 
-        void UseDelegate(Delegate& d)
+        void UseDelegate(Delegate* d)
         {
             Handlers_.push_back(&d);
         }
+        */
     };
 }
 #endif // MANAGED_EVENT_LISTENER_HPP
