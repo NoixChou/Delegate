@@ -1,7 +1,7 @@
 #include <iostream>
 #include "CppUnitTest.h"
 
-#include "../EventSystem/Include/EventSystem.hpp"
+#include "../Include/EventSystem.hpp"
 #include "TestEvent.hpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
