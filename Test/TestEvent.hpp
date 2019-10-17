@@ -1,7 +1,7 @@
 ﻿#ifndef TEST_EVENT_HPP
 #define TEST_EVENT_HPP
 
-#include "..//Include/Event.hpp"
+#include "../Include/Event.hpp"
 
 class TestEvent : public events::Event
 {

@@ -1,4 +1,4 @@
-#ifndef DELEGATE_HPP
+ï»¿#ifndef DELEGATE_HPP
 #define DELEGATE_HPP
 
 #include <vector>
@@ -22,37 +22,37 @@ namespace events
             SetCancelCondition(condition);
         }
 
-        // ƒ|ƒCƒ“ƒ^‚ğ’Ç‰Á
+        // ãƒã‚¤ãƒ³ã‚¿ã‚’è¿½åŠ 
         void operator+=(const EventHandler<Ret_, Args_...>& handler)
         {
             Handlers_.push_back(handler);
         }
 
-        // ƒ|ƒCƒ“ƒ^íœ
+        // ãƒã‚¤ãƒ³ã‚¿å‰Šé™¤
         void operator-=(const EventHandler<Ret_, Args_...>& handler)
         {
             Handlers_.erase(std::remove(Handlers_.begin(), Handlers_.end(), handler));
         }
 
-        // w’èƒNƒ‰ƒX‚Ìƒ|ƒCƒ“ƒ^‚ğíœ
+        // æŒ‡å®šã‚¯ãƒ©ã‚¹ã®ãƒã‚¤ãƒ³ã‚¿ã‚’å‰Šé™¤
         void operator>>(const EventListener* class_)
         {
             Handlers_.erase(std::remove_if(Handlers_.begin(), Handlers_.end(), [&class_](const EventHandler<Ret_, Args_...> h) { return h.GetClass() == class_; }), Handlers_.end());
         }
 
-        // ƒLƒƒƒ“ƒZƒ‹ğŒ‚ğİ’è
+        // ã‚­ãƒ£ãƒ³ã‚»ãƒ«æ¡ä»¶ã‚’è¨­å®š
         void SetCancelCondition(std::function<bool(Ret_, Args_...)> condition)
         {
             CancelCondition_ = condition;
         }
 
-        // ŒÄ‚Ño‚µ
+        // å‘¼ã³å‡ºã—
         std::vector<Ret_> operator()(Args_... args) const
         {
             std::vector<Ret_> ret_list;
             for (EventHandler<Ret_, Args_...> h : Handlers_)
             {
-                auto ret = h.Call(args...);
+                auto ret = h(args...);
                 ret_list.push_back(ret);
                 if (CancelCondition_ != nullptr)
                 {
@@ -66,7 +66,7 @@ namespace events
             return ret_list;
         }
 
-        /* ƒLƒƒƒXƒg‰‰Zq */
+        /* ã‚­ãƒ£ã‚¹ãƒˆæ¼”ç®—å­ */
 
         operator std::string() const
         {

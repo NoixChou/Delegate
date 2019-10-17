@@ -45,10 +45,9 @@ namespace events
             Handler_.ptrs_ = std::make_pair(util::ForceVoid(f), c);
         }
 
-        Ret_ Call(Args_... args) const
+        Ret_ operator()(Args_... args) const
         {
             return Handler_.func_(args...);
-            //return (Class_->*Function_)(e);
         }
 
         const void* GetClass() const
