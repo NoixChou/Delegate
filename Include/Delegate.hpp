@@ -50,17 +50,21 @@ namespace events
         std::vector<Ret_> operator()(Args_... args) const
         {
             std::vector<Ret_> ret_list;
+            ret_list.resize(Handlers_.size());
+
+            uint_fast64_t i = 0;
             for (EventHandler<Ret_, Args_...> h : Handlers_)
             {
-                auto ret = h(args...);
-                ret_list.push_back(ret);
+                Ret_ l_Ret = h(args...);
+                ret_list[i] = std::move(l_Ret);
                 if (CancelCondition_ != nullptr)
                 {
-                    if(CancelCondition_(ret, args...))
+                    if(CancelCondition_(l_Ret, args...))
                     {
                         return ret_list;
                     }
                 }
+                ++i;
             }
 
             return ret_list;

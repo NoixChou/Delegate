@@ -121,6 +121,11 @@ namespace Test
             others->TestHandler(&evt_);
             return true;
         }
+
+        bool NoLogHandler(TestEvent* e)
+        {
+            return true;
+        }
     };
 
 	TEST_CLASS(Test)
@@ -212,5 +217,23 @@ namespace Test
 
             g_TestHandle >> l_Std.get();
         }
+
+        TEST_METHOD(ManyHandlerCallTest)
+		{
+            auto l_Std = std::make_shared<StandardListener>();
+
+            for (int i = 0; i < 10000; ++i)
+            {
+                g_TestHandle += events::EventHandler<bool, TestEvent*>(l_Std.get(), &StandardListener::NoLogHandler);
+            }
+
+            TestEvent e("Hello");
+            e.name = "Event_ManyHandlerCallTest";
+            e.isCancellable = false;
+
+            g_TestHandle(&e);
+
+            g_TestHandle >> l_Std.get();
+		}
 	};
 }
