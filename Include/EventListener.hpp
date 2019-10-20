@@ -1,9 +1,9 @@
 #ifndef EVENT_LISTENER_HPP
 #define EVENT_LISTENER_HPP
 
-namespace events
+namespace delegate
 {
-    class EventListener
+    class [[deprecated]] EventListener
     {
     };
 }

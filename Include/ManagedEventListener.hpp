@@ -1,32 +1,13 @@
 #ifndef MANAGED_EVENT_LISTENER_HPP
 #define MANAGED_EVENT_LISTENER_HPP
 
+#include <any>
 #include "Delegate.hpp"
 
-namespace events
+namespace delegate
 {
-    class ManagedEventListener : public EventListener
+    class [[deprecated]] ManagedEventListener
     {
-/*    private:
-        std::vector<void*> Handlers_;
-
-    public:
-        ManagedEventListener() {}
-
-        ~ManagedEventListener()
-        {
-            for (auto d : Handlers_)
-            {
-                
-                (*d) >> this;
-            }
-        }
-
-        void UseDelegate(Delegate* d)
-        {
-            Handlers_.push_back(&d);
-        }
-        */
     };
 }
 #endif // MANAGED_EVENT_LISTENER_HPP

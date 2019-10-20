@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace events
+namespace delegate
 {
     class Event
     {

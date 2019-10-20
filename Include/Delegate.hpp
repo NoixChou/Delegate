@@ -6,83 +6,71 @@
 #include "EventHandler.hpp"
 #include <unordered_map>
 
-namespace events
+namespace delegate
 {
+    template<class> class Delegate;
     template<typename Ret_, typename... Args_>
-    class Delegate
+    class Delegate<Ret_(Args_...)>
     {
+    public:
+        //using Handlers = std::vector<EventHandler<Ret_, Args_...>>;
+        using Handler = EventHandler<Ret_(Args_...)>;
+        using Handlers = std::list<Handler>;
+        using Iterator = typename Handlers::iterator;
     private:
-        std::vector<EventHandler<Ret_, Args_...>> Handlers_;
-        std::function<bool(Ret_, Args_...)> CancelCondition_ = nullptr;
+        Handlers Handlers_;
 
     public:
         Delegate() {}
-        Delegate(std::function<bool(Ret_, Args_...)> condition)
-        {
-            SetCancelCondition(condition);
-        }
 
         // ポインタを追加
-        void operator+=(const EventHandler<Ret_, Args_...>& handler)
+        void operator+=(const Handler& handler)
         {
-            Handlers_.push_back(handler);
+            Handlers_.emplace_back(handler);
         }
 
         // ポインタ削除
-        void operator-=(const EventHandler<Ret_, Args_...>& handler)
+        void operator-=(const Handler& handler)
         {
             Handlers_.erase(std::remove(Handlers_.begin(), Handlers_.end(), handler));
         }
 
-        // 指定クラスのポインタを削除
-        void operator>>(const EventListener* class_)
+        void operator-=(void* class_)
         {
-            Handlers_.erase(std::remove_if(Handlers_.begin(), Handlers_.end(), [&class_](const EventHandler<Ret_, Args_...> h) { return h.GetClass() == class_; }), Handlers_.end());
-        }
-
-        // キャンセル条件を設定
-        void SetCancelCondition(std::function<bool(Ret_, Args_...)> condition)
-        {
-            CancelCondition_ = condition;
+            Handlers_.erase(std::remove_if(Handlers_.begin(), Handlers_.end(), [&class_](const EventHandler<Ret_(Args_...)> h)
+                {
+                    return h.GetClass() == class_;
+                }), Handlers_.end());
         }
 
         // 呼び出し
         std::vector<Ret_> operator()(Args_... args) const
         {
-            std::vector<Ret_> ret_list;
-            ret_list.resize(Handlers_.size());
+            std::vector<Ret_> l_RetList;
+            l_RetList.resize(Handlers_.size());
 
             uint_fast64_t i = 0;
-            for (EventHandler<Ret_, Args_...> h : Handlers_)
+            for (const auto& l_Handler : Handlers_)
             {
-                Ret_ l_Ret = h(args...);
-                ret_list[i] = std::move(l_Ret);
-                if (CancelCondition_ != nullptr)
-                {
-                    if(CancelCondition_(l_Ret, args...))
-                    {
-                        return ret_list;
-                    }
-                }
+                l_RetList[i] = l_Handler(args...);
                 ++i;
             }
 
-            return ret_list;
+            return l_RetList;
         }
 
         /* キャスト演算子 */
-
         operator std::string() const
         {
-            std::string str = "Delegate{ ";
-            for (auto h : Handlers_)
+            std::string l_Str = "Delegate { ";
+            for (const auto& l_Handler : Handlers_)
             {
-                str += h;
-                str += " ";
+                l_Str += l_Handler;
+                l_Str += " ";
             }
 
-            str += "}";
-            return str;
+            l_Str += "}";
+            return l_Str;
         }
     };
 }

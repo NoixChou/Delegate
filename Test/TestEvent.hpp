@@ -3,7 +3,7 @@
 
 #include "../Include/Event.hpp"
 
-class TestEvent : public events::Event
+class TestEvent : public delegate::Event
 {
 public:
     std::string message_ = "";
