@@ -3,30 +3,33 @@
 
 #ifdef ALLOW_FORCE_CAST
 
-namespace util
+namespace delegate
 {
-    template<class Orig, class T>
-    T ForceCast(Orig p)
+    namespace util
     {
-        union
+        template<class Orig, class T>
+        T ForceCast(Orig p)
         {
-            Orig original;
-            T ptr;
-        };
-        original = p;
-        return ptr;
-    }
+            union
+            {
+                Orig original;
+                T ptr;
+            };
+            original = p;
+            return ptr;
+        }
 
-    template<class T>
-    void* ForceVoid(T p)
-    {
-        union
+        template<class T>
+        void* ForceVoid(T p)
         {
-            T original;
-            void* ptr;
-        };
-        original = p;
-        return ptr;
+            union
+            {
+                T original;
+                void* ptr;
+            };
+            original = p;
+            return ptr;
+        }
     }
 }
 

@@ -152,8 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Include\Delegate.hpp" />
-    <ClInclude Include="Include\Event.hpp" />
-    <ClInclude Include="Include\EventHandler.hpp" />
+    <ClInclude Include="Include\DelegateHandler.hpp" />
     <ClInclude Include="Include\EventListener.hpp" />
     <ClInclude Include="Include\EventSystem.hpp" />
     <ClInclude Include="Include\ForceCast.hpp" />

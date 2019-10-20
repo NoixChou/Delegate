@@ -1,39 +1,39 @@
-# EventSystem
-オレオレイベントライブラリ
+# Delegate
+オレオレ~~イベント~~デリゲートライブラリ
 
 # つかいかた
-- EventSystem.hppインクルード。
-- events::Delegateがデリゲート型、events::ManagedEventListenerを継承したクラスにイベントハンドラを持てる。
+- Delegate.hppインクルード。
+- delegate::Delegateがデリゲート型、delegate::ManagedEventListenerを継承したクラスにイベントハンドラを持てる。
 - デリゲートは+=演算子でハンドラ追加、-=演算子でハンドラ削除ができる
-- デリゲートに追加するときはevents::EventHandler(クラスのポインタ[this], ハンドラ関数[bool MemberMethod(Event& e)])を使って追加
-- events::Delegate >> クラスのポインタ でそのクラスのハンドラがまとめて削除される
-- events::ManagedEventListener::UseDelegate(Delegate型)でデリゲートを登録すれば、クラス開放時にデリゲートからそのクラスのハンドラが削除される
+- デリゲートに追加するときはdelegate::DelegateHandler(クラスのポインタ[this], ハンドラ関数[bool MemberMethod(Event& e)])を使って追加
+- delegate::Delegate -= クラスのポインタ でそのクラスのハンドラがまとめて削除される
+- delegate::ManagedEventListener::UseDelegate(Delegate型)でデリゲートを登録すれば、クラス開放時にデリゲートからそのクラスのハンドラが削除される
 
 コードを書けば
 ```cpp
-#include "EventSystem/Include/EventSystem.hpp"
+#include <iostream>
+#include <string>
+#include "EventSystem/Include/Delegate.hpp"
 
-events::Delegate g_Delegate;
+delegate::Delegate<bool(const std::string&)> g_Delegate;
 
-class TestListener : public events::ManagedEventListener
-{
+class TestListener
 public:
     TestListener()
     {
-        g_Delegate += events::EventHandler(this, &TestListener::TestHandler);
-        g_Delegate += events::EventHandler(this, &TestListener::TestHandler2);
-        UseDelegate(g_Delegate);
+        g_Delegate += delegate::DelegateHandler<bool(const std::string&)>(this, &TestListener::TestHandler);
+        g_Delegate += delegate::DelegateHandler<bool(const std::string&)>(this, &TestListener::TestHandler2);
     }
     
-    bool TestHandler(events::Event& e)
+    bool TestHandler(const std::string& e)
     {
-        std::cout << e.name << "でTestHandlerがよばれた！！！" << std::endl;
-        return true; // falseを返すとキャンセルされる(これ以降のハンドラが呼ばれない)
+        std::cout << "TestHandlerがよばれた！！！ メッセージ: " << e << std::endl;
+        return true;
     }
     
-    bool TestHandler2(events::Event& e)
+    bool TestHandler2(const std::string& e)
     {
-        std::cout << e.name << "でTestHandler2がよばれた！！！" << std::endl;
+        std::cout << "TestHandler2がよばれた！！！ メッセージ: " << e << std::endl;
         return true;
     }
 };
@@ -41,14 +41,14 @@ public:
 void main()
 {
     auto l_Listener = new TestListener();
+
+    g_Delegate("Test Message");
     
-    events::Event e;
-    e.name = "Test Event";
-    g_Delegate(e);
-    
+	g_Delegate -= l_Listener; // l_Listenerのメンバ関数ハンドラを全て削除
+
     delete l_Listener;
     
-    g_Delegate(e); // 何も呼ばれない
+    g_Delegate("Test Message 2"); // 何も呼ばれない
 }
 ```
 

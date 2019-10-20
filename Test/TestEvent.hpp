@@ -1,9 +1,9 @@
 ﻿#ifndef TEST_EVENT_HPP
 #define TEST_EVENT_HPP
 
-#include "../Include/Event.hpp"
+#include "Event.hpp"
 
-class TestEvent : public delegate::Event
+class TestEvent : public Event
 {
 public:
     std::string message_ = "";

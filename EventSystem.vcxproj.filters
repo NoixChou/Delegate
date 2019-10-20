@@ -18,12 +18,6 @@
     <ClInclude Include="Include\Delegate.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Include\Event.hpp">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Include\EventHandler.hpp">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Include\EventListener.hpp">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
@@ -35,6 +29,9 @@
     </ClInclude>
     <ClInclude Include="Include\ManagedEventListener.hpp">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DelegateHandler.hpp">
+      <Filter>ソース ファイル</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

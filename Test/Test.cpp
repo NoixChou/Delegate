@@ -1,7 +1,7 @@
 #include <iostream>
 #include "CppUnitTest.h"
 
-#include "../Include/EventSystem.hpp"
+#include "../Include/Delegate.hpp"
 #include "TestEvent.hpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -15,8 +15,8 @@ namespace Test
     public:
         SelfAddListener()
         {
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(this, &SelfAddListener::TestHandler);
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(this, &SelfAddListener::TestHandler2);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(this, &SelfAddListener::TestHandler);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(this, &SelfAddListener::TestHandler2);
         }
 
         ~SelfAddListener()
@@ -146,8 +146,8 @@ namespace Test
         {
             auto l_OthersAdd = new OthersAddListener("OthersAddTest");
 
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(l_OthersAdd, &OthersAddListener::TestHandler);
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(l_OthersAdd, &OthersAddListener::TestHandler2);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(l_OthersAdd, &OthersAddListener::TestHandler);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(l_OthersAdd, &OthersAddListener::TestHandler2);
 
             TestEvent e("Hello");
             e.name = "Event_OthersAddTest";
@@ -169,7 +169,7 @@ namespace Test
 		{
             auto l_Std = new StandardListener();
 
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(l_Std, &StandardListener::CallOtherHandler);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(l_Std, &StandardListener::CallOtherHandler);
 
             TestEvent e("Hello");
             e.name = "Event_OtherMethodCallTest";
@@ -187,7 +187,7 @@ namespace Test
 
             for (int i = 0; i < 10000; ++i)
             {
-                g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(l_Std, &StandardListener::NoLogHandler);
+                g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(l_Std, &StandardListener::NoLogHandler);
             }
 
             TestEvent e("Hello");
@@ -204,16 +204,16 @@ namespace Test
 		{
             auto l_Std = new StandardListener();
 
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler);
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler2);
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler3);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler2);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler3);
 
             TestEvent e("Hello");
             e.name = "Event_HandlerRemove";
 
             g_TestHandle(&e);
 
-            g_TestHandle -= delegate::EventHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler2);
+            g_TestHandle -= delegate::DelegateHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler2);
 
             g_TestHandle(&e);
 
@@ -226,9 +226,9 @@ namespace Test
 		{
             auto l_Std = new StandardListener();
 
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler);
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler2);
-            g_TestHandle += delegate::EventHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler3);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler2);
+            g_TestHandle += delegate::DelegateHandler<bool(TestEvent*)>(l_Std, &StandardListener::TestHandler3);
 
             Logger::WriteMessage(("g_TestHandle: " + std::string(g_TestHandle)).c_str());
 

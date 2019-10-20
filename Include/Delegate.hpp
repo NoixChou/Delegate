@@ -3,18 +3,16 @@
 
 #include <vector>
 #include <algorithm>
-#include "EventHandler.hpp"
-#include <unordered_map>
+#include "DelegateHandler.hpp"
 
 namespace delegate
 {
-    template<class> class Delegate;
+    template<typename> class Delegate;
     template<typename Ret_, typename... Args_>
     class Delegate<Ret_(Args_...)>
     {
     public:
-        //using Handlers = std::vector<EventHandler<Ret_, Args_...>>;
-        using Handler = EventHandler<Ret_(Args_...)>;
+        using Handler = DelegateHandler<Ret_(Args_...)>;
         using Handlers = std::list<Handler>;
         using Iterator = typename Handlers::iterator;
     private:
@@ -23,13 +21,13 @@ namespace delegate
     public:
         Delegate() {}
 
-        // ポインタを追加
+        // ハンドラを追加
         void operator+=(const Handler& handler)
         {
             Handlers_.emplace_back(handler);
         }
 
-        // ポインタ削除
+        // ハンドラを削除
         void operator-=(const Handler& handler)
         {
             Handlers_.erase(std::remove(Handlers_.begin(), Handlers_.end(), handler));
@@ -37,10 +35,7 @@ namespace delegate
 
         void operator-=(void* class_)
         {
-            Handlers_.erase(std::remove_if(Handlers_.begin(), Handlers_.end(), [&class_](const EventHandler<Ret_(Args_...)> h)
-                {
-                    return h.GetClass() == class_;
-                }), Handlers_.end());
+            Handlers_.erase(std::remove_if(Handlers_.begin(), Handlers_.end(), [&class_](const DelegateHandler<Ret_(Args_...)> h) { return h.GetClass() == class_; }), Handlers_.end());
         }
 
         // 呼び出し
